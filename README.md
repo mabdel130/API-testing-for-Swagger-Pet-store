@@ -11,7 +11,7 @@ This project is dedicated to testing the functionalities of the Swagger Petstore
 
 - Pet Management:
 
-1. Add new pets to the store.**
+1. Add new pets to the store.
 
 2. Retrieve pets by ID or status (available, pending, sold).
 
