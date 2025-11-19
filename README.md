@@ -57,7 +57,7 @@ Follow these steps to set up the project locally:
 4. Navigate to the project directory:**
 
    ```bash
-   cd API-testing-Restful-Booker-Project
+    cd API-testing-Petstore-Project
    ```
 
 5. Import the Postman collection and environment into Postman:
