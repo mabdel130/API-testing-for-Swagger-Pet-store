@@ -13,9 +13,9 @@ This project is dedicated to testing the functionalities of the Swagger Petstore
 
 1. Add new pets to the store.**
 
-2. Retrieve pets by ID or status (available, pending, sold).**
+2. Retrieve pets by ID or status (available, pending, sold).
 
-3. Update existing pet details.**
+3. Update existing pet details.
 
 4. Delete pets from the store.
 -  Store Operations:
@@ -32,7 +32,7 @@ This project is dedicated to testing the functionalities of the Swagger Petstore
 
 1. Log in and log out.
 
-2. **Retrieve, update, and delete user accounts.
+2. Retrieve, update, and delete user accounts.
 
 ## 🛠️ Installation
 
