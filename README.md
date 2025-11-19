@@ -1,6 +1,7 @@
 
 # 🧪Pet Store API Testing Project
-https://www.google.com/imgres?q=pet%20store%20api%20documentation&imgurl=https%3A%2F%2Fassets.publish.postman.com%2Fog-image%3Fheading%3DCOLLECTION%26entityName%3DSwagger%2520Petstore%26entityType%3Dcollection-documentation%26imageUrl%3Dhttps%253A%252F%252Fres.cloudinary.com%252Fpostman%252Fimage%252Fupload%252Ft_team_logo%252Fv1%252Fteam%252Fdefault-H2%26isVerified%3Dfalse%26teamName%3DHex1&imgrefurl=https%3A%2F%2Fwww.postman.com%2Fmitshex1%2Fswagger-petstore%2Fdocumentation%2Fu3v1299%2Fswagger-petstore&docid=RuzcP_CdYrgJ9M&tbnid=QuhCaK_SChCkQM&vet=12ahUKEwiu0ZO9lv6QAxXuK_sDHcXqK4wQM3oECCoQAA..i&w=1200&h=630&hcb=2&ved=2ahUKEwiu0ZO9lv6QAxXuK_sDHcXqK4wQM3oECCoQAA
+
+<img width="310" height="163" alt="image" src="https://github.com/user-attachments/assets/d2677ec5-cdfb-4111-9107-ce0944e1c1bc" />
 
 ## 📖 Introduction
 This project is dedicated to testing the functionalities of the Swagger Petstore API. It serves as a practical exercise in API testing, focusing on managing pets, stores, and user accounts through CRUD operations.
