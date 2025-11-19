@@ -1,0 +1,3633 @@
+{
+	"info": {
+		"_postman_id": "74ec366b-476a-48fc-a34b-331cc42110e5",
+		"name": "petstore.swagger",
+		"description": "> **Swagger Petstore is a sample API designed to demonstrate how Swagger/OpenAPI works.** It simulates a fictional online pet store where you can manage pets, users, and store orders. Developers use it as a sandbox to learn, test, and showcase API documentation and tooling. \n  \n\n<img src=\"https://content.pstmn.io/58e0630d-5434-4207-aab2-e79f11101439/aW1hZ2VzLnBuZw==\" alt=\"\" height=\"270\" width=\"414\">",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30343558",
+		"_collection_link": "https://www.postman.com/testing-team-0585/workspace/api-testing-for-swagger-petstore-api/collection/30343558-74ec366b-476a-48fc-a34b-331cc42110e5?action=share&source=collection_link&creator=30343558"
+	},
+	"item": [
+		{
+			"name": "01 Pet",
+			"item": [
+				{
+					"name": "01.1 add new pet to the store",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Random number generator (inclusive)\r",
+									"function randomNumber(min, max) {\r",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"// Random string generator (lowercase letters)\r",
+									"function generateRandomString(length) {\r",
+									"  const chars = 'abcdefghijklmnopqrstuvwxyz';\r",
+									"  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');\r",
+									"}\r",
+									"\r",
+									"// Capitalize first letter\r",
+									"function capitalize(str) {\r",
+									"  return str.charAt(0).toUpperCase() + str.slice(1);\r",
+									"}\r",
+									"\r",
+									"// Dynamic Pet Data\r",
+									"const petName = capitalize(generateRandomString(randomNumber(4, 7)));\r",
+									"const categoryName = capitalize(generateRandomString(randomNumber(5, 8)));\r",
+									"const tagName = capitalize(generateRandomString(randomNumber(3, 6)));\r",
+									"\r",
+									"// Set variables in Postman\r",
+									"pm.collectionVariables.set(\"petId\", randomNumber(1, 9999));\r",
+									"pm.collectionVariables.set(\"categoryId\", randomNumber(1, 100));\r",
+									"pm.collectionVariables.set(\"categoryName\", categoryName);\r",
+									"pm.collectionVariables.set(\"petName\", petName);\r",
+									"pm.collectionVariables.set(\"photoUrl\", `https://picsum.photos/200/300?random=${randomNumber(1, 5000)}`);\r",
+									"pm.collectionVariables.set(\"tagId\", randomNumber(1, 500));\r",
+									"pm.collectionVariables.set(\"tagName\", tagName);\r",
+									"\r",
+									"// Random status\r",
+									"const statuses = [\"available\", \"pending\", \"sold\"];\r",
+									"pm.collectionVariables.set(\"status\", statuses[Math.floor(Math.random() * statuses.length)]);\r",
+									"\r",
+									"// Debug log\r",
+									"console.log(\"Generated Petstore data:\", {\r",
+									"  petId: pm.collectionVariables.get(\"petId\"),\r",
+									"  categoryId: pm.collectionVariables.get(\"categoryId\"),\r",
+									"  categoryName: pm.collectionVariables.get(\"categoryName\"),\r",
+									"  petName: pm.collectionVariables.get(\"petName\"),\r",
+									"  photoUrl: pm.collectionVariables.get(\"photoUrl\"),\r",
+									"  tagId: pm.collectionVariables.get(\"tagId\"),\r",
+									"  tagName: pm.collectionVariables.get(\"tagName\"),\r",
+									"  status: pm.collectionVariables.get(\"status\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save petId in collection variable\r",
+									"pm.collectionVariables.set(\"petId\", pm.response.json().id);\r",
+									"const jsonData = pm.response.json();\r",
+									"const pet = jsonData;\r",
+									"\r",
+									"pm.collectionVariables.set(\"status\", jsonData.status);\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F01 Req01 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req01 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req01 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req01 TC04 - Validate Server header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// pm.test(\"F01 Req01 TC05 - Validate Content-Length header is greater than 0\", () => {\r",
+									"//     const length = pm.response.headers.get(\"Content-Length\");\r",
+									"//     pm.expect(Number(length)).to.be.above(0);\r",
+									"// });\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F01 Req01 TC06 - Validate create pet response matches expected schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            category: {\r",
+									"                type: \"object\",\r",
+									"                properties: {\r",
+									"                    id: { type: \"integer\" },\r",
+									"                    name: { type: \"string\" }\r",
+									"                },\r",
+									"                required: [\"id\", \"name\"]\r",
+									"            },\r",
+									"            name: { type: \"string\" },\r",
+									"            photoUrls: {\r",
+									"                type: \"array\",\r",
+									"                items: { type: \"string\" }\r",
+									"            },\r",
+									"            tags: {\r",
+									"                type: \"array\",\r",
+									"                items: {\r",
+									"                    type: \"object\",\r",
+									"                    properties: {\r",
+									"                        id: { type: \"integer\" },\r",
+									"                        name: { type: \"string\" }\r",
+									"                    },\r",
+									"                    required: [\"id\", \"name\"]\r",
+									"                }\r",
+									"            },\r",
+									"            status: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"category\", \"name\", \"photoUrls\", \"tags\", \"status\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F01 Req01 TC07 - Validate response contains same values as request body\", () => {\r",
+									"    const requestBody = JSON.parse(pm.request.body.raw);\r",
+									"    const responseBody = pm.response.json();\r",
+									"    validatePet(requestBody, responseBody);\r",
+									"});\r",
+									"\r",
+									"// Match against collection variables\r",
+									"pm.test(\"F01 Req01 TC08 - Validate pet name matches collection variable\", () => {\r",
+									"    pm.expect(pet.name).to.eql(pm.collectionVariables.get(\"petName\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req01 TC09 - Validate category name matches collection variable\", () => {\r",
+									"    pm.expect(pet.category.name).to.eql(pm.collectionVariables.get(\"categoryName\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req01 TC10 - Validate status matches collection variable\", () => {\r",
+									"    pm.expect(pet.status).to.eql(pm.collectionVariables.get(\"status\"));\r",
+									"});\r",
+									"\r",
+									"// Parameter logic\r",
+									"pm.test(\"F01 Req01 TC11 - Validate status is available, pending, or sold\", () => {\r",
+									"    const statuses = [\"available\", \"pending\", \"sold\"];\r",
+									"    pm.expect(statuses).to.include(pet.status);\r",
+									"});\r",
+									"\r",
+									"// Helper Functions\r",
+									"function validatePet(requestBody, responseBody) {\r",
+									"    pm.expect(requestBody.id).to.eql(responseBody.id);\r",
+									"    pm.expect(requestBody.name).to.eql(responseBody.name);\r",
+									"    pm.expect(requestBody.category.id).to.eql(responseBody.category.id);\r",
+									"    pm.expect(requestBody.category.name).to.eql(responseBody.category.name);\r",
+									"    pm.expect(requestBody.status).to.eql(responseBody.status);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": {{petId}},\r\n  \"category\": {\r\n    \"id\": {{categoryId}},\r\n    \"name\": \"{{categoryName}}\"\r\n  },\r\n  \"name\": \"{{petName}}\",\r\n  \"photoUrls\": [\r\n    \"{{photoUrl}}\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": {{tagId}},\r\n      \"name\": \"{{tagName}}\"\r\n    }\r\n  ],\r\n  \"status\": \"{{status}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/pet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/pet' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"id\": 0,\r\n  \"category\": {\r\n    \"id\": 0,\r\n    \"name\": \"string\"\r\n  },\r\n  \"name\": \"doggie\",\r\n  \"photoUrls\": [\r\n    \"string\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": 0,\r\n      \"name\": \"string\"\r\n    }\r\n  ],\r\n  \"status\": \"available\"\r\n}'"
+					},
+					"response": [
+						{
+							"name": "01.1 add new pet to the store",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": ,\r\n  \"category\": {\r\n    \"id\": ,\r\n    \"name\": \"\"\r\n  },\r\n  \"name\": \"\",\r\n  \"photoUrls\": [\r\n    \"\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": ,\r\n      \"name\": \"\"\r\n    }\r\n  ],\r\n  \"status\": \"\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/pet",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:20 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 6713,\n    \"category\": {\n        \"id\": 62,\n        \"name\": \"Iohuz\"\n    },\n    \"name\": \"Przya\",\n    \"photoUrls\": [\n        \"https://picsum.photos/200/300?random=4518\"\n    ],\n    \"tags\": [\n        {\n            \"id\": 95,\n            \"name\": \"Vdaubp\"\n        }\n    ],\n    \"status\": \"sold\"\n}"
+						}
+					]
+				},
+				{
+					"name": "01.2 find By Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "id",
+								"value": "{{petId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/pet/findByStatus?status={{status}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet",
+								"findByStatus"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "{{status}}"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/pet/findByStatus?status=pending' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "01.2 find By Status",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "id",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/pet/findByStatus?status=",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet",
+										"findByStatus"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": ""
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:25 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 23688827,\n        \"category\": {\n            \"id\": 38199557,\n            \"name\": \"officia in\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"culpa aliqua do Ut\",\n            \"pariatur non qui\"\n        ],\n        \"tags\": [\n            {\n                \"id\": -59409203,\n                \"name\": \"irure id dolor D\"\n            },\n            {\n                \"id\": -8983193,\n                \"name\": \"amet Duis\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 64840,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 62557,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 191876581,\n        \"category\": {\n            \"id\": -29245128,\n            \"name\": \"incididunt\"\n        },\n        \"name\": \"executing_from_test\",\n        \"photoUrls\": [\n            \"dolore Excepteur est\",\n            \"consequat in labore\"\n        ],\n        \"tags\": [\n            {\n                \"id\": -55902183,\n                \"name\": \"Lorem laboris nulla\"\n            },\n            {\n                \"id\": 67424482,\n                \"name\": \"incididunt ipsum eiusmod\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 433333,\n        \"category\": {\n            \"id\": 5,\n            \"name\": \"Hamsters\"\n        },\n        \"name\": \"Hamtaro\",\n        \"photoUrls\": [\n            \"http://newphoto.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 5,\n                \"name\": \"nuevo\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 433335,\n        \"category\": {\n            \"id\": 3,\n            \"name\": \"Aves\"\n        },\n        \"name\": \"Piolin\",\n        \"photoUrls\": [\n            \"http://photo3.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 3,\n                \"name\": \"tag3\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 61704,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 99421,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 60917,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 34291,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 1004,\n        \"name\": \"Rocky\",\n        \"photoUrls\": [],\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 3469030,\n        \"category\": {\n            \"id\": 0,\n            \"name\": \"cat\"\n        },\n        \"name\": \"SOBAKA_993\",\n        \"photoUrls\": [\n            \"sobaka3.png\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 0,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 87694,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 26928,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 62690,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 85235,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 84321,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 2584895,\n        \"category\": {\n            \"id\": 0,\n            \"name\": \"rat\"\n        },\n        \"name\": \"57_SOBAKA_737\",\n        \"photoUrls\": [\n            \"sobaka1.png\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 0,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 57582,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 17,\n        \"name\": \"Special_char_owner_!@#$^&()`.testing\",\n        \"photoUrls\": [\n            \"https://petstore3.swagger.io/resources/photos/623389095.jpg\"\n        ],\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 19467,\n        \"name\": \"見響见响仮仏!$%&()*+,-ƄƅƆḞḟṀʶʷʸăĄą\",\n        \"photoUrls\": [\n            \"https://petstore3.swagger.io/resources/photos/623389095.jpg\"\n        ],\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 94476,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 12609,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 86263,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 24471,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 51490,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 28919,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 60777,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 15276,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 38597,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 74408294,\n        \"category\": {\n            \"id\": 70278030,\n            \"name\": \"in adipisicing\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"nostrud sunt eu occaecat elit\",\n            \"esse aute non magna\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 81618844,\n                \"name\": \"id aliquip\"\n            },\n            {\n                \"id\": -96817599,\n                \"name\": \"ut elit esse\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 13,\n        \"category\": {\n            \"id\": 0,\n            \"name\": \"cats\"\n        },\n        \"photoUrls\": [\n            \"string\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 0,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 28906,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 9,\n        \"category\": {\n            \"id\": 0,\n            \"name\": \"cats\"\n        },\n        \"name\": \"King Kong\",\n        \"photoUrls\": [\n            \"string\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 0,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 8,\n        \"category\": {\n            \"id\": 684,\n            \"name\": \"Duis sit sunt adipisicing\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"qui enim dolore\",\n            \"cupidatat nisi reprehenderit non\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1131,\n                \"name\": \"sit\"\n            },\n            {\n                \"id\": 684,\n                \"name\": \"fugiat consectetur pariatur\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 64,\n        \"category\": {\n            \"id\": 697,\n            \"name\": \"sint in d\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"in qui\",\n            \"dolore nisi ad enim ut\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 7229,\n                \"name\": \"anim occaecat sed irure\"\n            },\n            {\n                \"id\": 80014622,\n                \"name\": \"ut enim aute officia\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 2428,\n        \"category\": {\n            \"id\": 28,\n            \"name\": \"Cnjjkpt\"\n        },\n        \"name\": \"Stptgrs\",\n        \"photoUrls\": [\n            \"https://picsum.photos/200/300?random=51\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 157,\n                \"name\": \"Yzkel\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 111111,\n        \"category\": {\n            \"id\": 11111,\n            \"name\": \"string\"\n        },\n        \"name\": \"puppy\",\n        \"photoUrls\": [\n            \"string\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 111,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 9478,\n        \"category\": {\n            \"id\": 22,\n            \"name\": \"Ljubaxnr\"\n        },\n        \"name\": \"Elrnpxb\",\n        \"photoUrls\": [\n            \"https://picsum.photos/200/300?random=3921\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 165,\n                \"name\": \"Vcz\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 7102,\n        \"category\": {\n            \"id\": 5082,\n            \"name\": \"str\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"string\",\n            \"string\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 6337,\n                \"name\": \"string\"\n            },\n            {\n                \"id\": 6029,\n                \"name\": \"string\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 50001,\n        \"name\": \"Rex Updated\",\n        \"photoUrls\": [\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 13122,\n        \"name\": \"UpdatedAnotherTestPet\",\n        \"photoUrls\": [],\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 777,\n        \"category\": {\n            \"id\": 888,\n            \"name\": \"This is my new category\"\n        },\n        \"name\": \"This is my new pet\",\n        \"tags\": [],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 65465013,\n        \"category\": {\n            \"id\": 27559527,\n            \"name\": \"elit tempor\"\n        },\n        \"name\": \"doggie\",\n        \"photoUrls\": [\n            \"dolor laboris eiusmod\",\n            \"dolor \"\n        ],\n        \"tags\": [\n            {\n                \"id\": -62532342,\n                \"name\": \"ullamco esse deserunt\"\n            },\n            {\n                \"id\": -45299952,\n                \"name\": \"ulla\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 21120,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"FluffyUpdated\",\n        \"photoUrls\": [\n            \"https://example.com/photo_updated.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"cute\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 97752,\n        \"category\": {\n            \"id\": 1,\n            \"name\": \"Dogs\"\n        },\n        \"name\": \"Pet with sold status\",\n        \"photoUrls\": [\n            \"https://example.com/photo1.jpg\",\n            \"https://example.com/photo2.jpg\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 1,\n                \"name\": \"friendly\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"trained\"\n            }\n        ],\n        \"status\": \"sold\"\n    },\n    {\n        \"id\": 6713,\n        \"category\": {\n            \"id\": 62,\n            \"name\": \"Iohuz\"\n        },\n        \"name\": \"Przya\",\n        \"photoUrls\": [\n            \"https://picsum.photos/200/300?random=4518\"\n        ],\n        \"tags\": [\n            {\n                \"id\": 95,\n                \"name\": \"Vdaubp\"\n            }\n        ],\n        \"status\": \"sold\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "01.3 update the existing pit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"const updatedPet = jsonData;\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F01 Req03 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req03 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req03 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F01 Req03 TC04 - Validate update pet response matches expected schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            category: {\r",
+									"                type: \"object\",\r",
+									"                properties: {\r",
+									"                    id: { type: \"integer\" },\r",
+									"                    name: { type: \"string\" }\r",
+									"                },\r",
+									"                required: [\"id\", \"name\"]\r",
+									"            },\r",
+									"            name: { type: \"string\" },\r",
+									"            photoUrls: {\r",
+									"                type: \"array\",\r",
+									"                items: { type: \"string\" }\r",
+									"            },\r",
+									"            tags: {\r",
+									"                type: \"array\",\r",
+									"                items: {\r",
+									"                    type: \"object\",\r",
+									"                    properties: {\r",
+									"                        id: { type: \"integer\" },\r",
+									"                        name: { type: \"string\" }\r",
+									"                    },\r",
+									"                    required: [\"id\", \"name\"]\r",
+									"                }\r",
+									"            },\r",
+									"            status: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"category\", \"name\", \"photoUrls\", \"tags\", \"status\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F01 Req03 TC05 - Validate response contains same values as request body\", () => {\r",
+									"    const requestBody = JSON.parse(pm.request.body.raw);\r",
+									"    validatePet(requestBody, updatedPet);\r",
+									"});\r",
+									"\r",
+									"// Match against collection variables (if you saved them earlier)\r",
+									"pm.test(\"F01 Req03 TC06 - Validate pet name matches collection variable\", () => {\r",
+									"    pm.expect(updatedPet.name).to.eql(pm.collectionVariables.get(\"petName\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req03 TC07 - Validate status matches collection variable\", () => {\r",
+									"    pm.expect(updatedPet.status).to.eql(pm.collectionVariables.get(\"status\"));\r",
+									"});\r",
+									"\r",
+									"// Parameter logic\r",
+									"pm.test(\"F01 Req03 TC08 - Validate status is available, pending, or sold\", () => {\r",
+									"    const statuses = [\"available\", \"pending\", \"sold\"];\r",
+									"    pm.expect(statuses).to.include(updatedPet.status);\r",
+									"});\r",
+									"\r",
+									"// Helper Functions\r",
+									"function validatePet(requestBody, responseBody) {\r",
+									"    pm.expect(requestBody.id).to.eql(responseBody.id);\r",
+									"    pm.expect(requestBody.name).to.eql(responseBody.name);\r",
+									"    pm.expect(requestBody.category.id).to.eql(responseBody.category.id);\r",
+									"    pm.expect(requestBody.category.name).to.eql(responseBody.category.name);\r",
+									"    pm.expect(requestBody.status).to.eql(responseBody.status);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "id",
+								"value": "{{petId}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": {{petId}},\r\n  \"category\": {\r\n    \"id\": {{categoryId}},\r\n    \"name\": \"{{categoryName}}\"\r\n  },\r\n  \"name\": \"{{petName}}\",\r\n  \"photoUrls\": [\r\n    \"{{photoUrl}}\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": {{tagId}},\r\n      \"name\": \"{{tagName}}\"\r\n    }\r\n  ],\r\n  \"status\": \"{{status}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/pet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'PUT' \\\r\n  'https://petstore.swagger.io/v2/pet' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"id\": 0,\r\n  \"category\": {\r\n    \"id\": 0,\r\n    \"name\": \"string\"\r\n  },\r\n  \"name\": \"doggie\",\r\n  \"photoUrls\": [\r\n    \"string\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": 0,\r\n      \"name\": \"string\"\r\n    }\r\n  ],\r\n  \"status\": \"available\"\r\n}'"
+					},
+					"response": [
+						{
+							"name": "01.3 update the existing pit",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "id",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": ,\r\n  \"category\": {\r\n    \"id\": ,\r\n    \"name\": \"\"\r\n  },\r\n  \"name\": \"\",\r\n  \"photoUrls\": [\r\n    \"\"\r\n  ],\r\n  \"tags\": [\r\n    {\r\n      \"id\": ,\r\n      \"name\": \"\"\r\n    }\r\n  ],\r\n  \"status\": \"\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/pet",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:30 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 6713,\n    \"category\": {\n        \"id\": 62,\n        \"name\": \"Iohuz\"\n    },\n    \"name\": \"Przya\",\n    \"photoUrls\": [\n        \"https://picsum.photos/200/300?random=4518\"\n    ],\n    \"tags\": [\n        {\n            \"id\": 95,\n            \"name\": \"Vdaubp\"\n        }\n    ],\n    \"status\": \"sold\"\n}"
+						}
+					]
+				},
+				{
+					"name": "01.4 upload Image",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Safe JSON parsing helper",
+									"function tryParseJson() {",
+									"    const ct = pm.response.headers.get('Content-Type') || '';",
+									"    if (ct.includes('application/json')) {",
+									"        try {",
+									"            return pm.response.json();",
+									"        } catch (e) {",
+									"            // fall through if invalid JSON despite header",
+									"        }",
+									"    }",
+									"    return null;",
+									"}",
+									"",
+									"const jsonData = tryParseJson();",
+									"",
+									"// Basic response checks",
+									"pm.test(\"F01 Req04 TC01 - Validate response status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC02 - Validate response time is under 1000ms\", () => {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC03 - Validate Content-Type header is application/json (when JSON)\", () => {",
+									"    const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"    if (pm.response.code === 200) {",
+									"        pm.expect(ct).to.include(\"application/json\");",
+									"    } else {",
+									"        pm.expect(ct.length).to.be.above(0);",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC04 - Validate Server header exists\", () => {",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC05 - Validate response body length is greater than 0\", () => {",
+									"    pm.expect(pm.response.text().length).to.be.above(0);",
+									"});",
+									"",
+									"// Schema Validation (only if JSON is present)",
+									"pm.test(\"F01 Req04 TC06 - Validate upload image response matches expected schema (when JSON)\", () => {",
+									"    if (!jsonData) {",
+									"        pm.expect.fail(\"Response is not JSON\");",
+									"    } else {",
+									"        const schema = {",
+									"            type: \"object\",",
+									"            properties: {",
+									"                code: { type: \"integer\" },",
+									"                type: { type: \"string\" },",
+									"                message: { type: \"string\" }",
+									"            },",
+									"            required: [\"code\", \"type\", \"message\"]",
+									"        };",
+									"        pm.response.to.have.jsonSchema(schema);",
+									"    }",
+									"});",
+									"",
+									"// Body Validations (guarded by JSON)",
+									"pm.test(\"F01 Req04 TC07 - Validate petId used in request matches collection variable\", () => {",
+									"    const requestUrl = pm.request.url.toString();",
+									"    pm.expect(requestUrl).to.include(pm.collectionVariables.get(\"petId\"));",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC08 - Validate response message contains additionalMetadata (when JSON)\", () => {",
+									"    if (!jsonData) {",
+									"        pm.expect.fail(\"Response is not JSON\");",
+									"    } else {",
+									"        pm.expect(jsonData.message).to.include(\"dsq\");",
+									"    }",
+									"});",
+									"",
+									"// Parameter logic (guarded by JSON)",
+									"pm.test(\"F01 Req04 TC09 - Validate response code is 200 (when JSON)\", () => {",
+									"    if (!jsonData) {",
+									"        pm.expect.fail(\"Response is not JSON\");",
+									"    } else {",
+									"        pm.expect(jsonData.code).to.eql(200);",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"F01 Req04 TC10 - Validate response type is 'unknown' (when JSON)\", () => {",
+									"    if (!jsonData) {",
+									"        pm.expect.fail(\"Response is not JSON\");",
+									"    } else {",
+									"        pm.expect(jsonData.type).to.eql(\"unknown\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "additionalMetadata",
+									"value": "dsq",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"contentType": "image/avif",
+									"type": "file",
+									"src": [
+										"api-testing.avif",
+										"/C:/Users/AbdELGhanyM1/Desktop/282.png"
+									]
+								},
+								{
+									"key": "id",
+									"value": "{{petId}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/pet/{{petId}}/uploadImage",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet",
+								"{{petId}}",
+								"uploadImage"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/pet/1244/uploadImage' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: multipart/form-data' \\\r\n  -F 'additionalMetadata=dsq' \\\r\n  -F 'file=@api-testing.avif;type=image/avif'"
+					},
+					"response": [
+						{
+							"name": "01.4 upload Image",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "additionalMetadata",
+											"value": "dsq",
+											"type": "text"
+										},
+										{
+											"key": "file",
+											"contentType": "image/avif",
+											"type": "file",
+											"src": [
+												"api-testing.avif",
+												"/C:/Users/AbdELGhanyM1/Desktop/282.png"
+											]
+										},
+										{
+											"key": "id",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/pet//uploadImage",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet",
+										"",
+										"uploadImage"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:34 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/html; charset=ISO-8859-1"
+								},
+								{
+									"key": "Content-Length",
+									"value": "331"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "must-revalidate,no-cache,no-store"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "<html>\n    <head>\n        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n        <title>Error 500 Internal Server Error</title>\n    </head>\n    <body>\n        <h2>HTTP ERROR 500</h2>\n        <p>Problem accessing /v2/pet/6713/uploadImage. Reason:\n\n            <pre>    Internal Server Error</pre>\n        </p>\n        <hr>\n        <i>\n            <small>Powered by Jetty://</small>\n        </i>\n        <hr/>\n    </body>\n</html>"
+						}
+					]
+				},
+				{
+					"name": "01.5 find pet by pet id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"const pet = jsonData;\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F01 Req05 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC04 - Validate Server header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F01 Req05 TC05 - Validate pet response matches expected schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            category: {\r",
+									"                type: \"object\",\r",
+									"                properties: {\r",
+									"                    id: { type: \"integer\" },\r",
+									"                    name: { type: \"string\" }\r",
+									"                },\r",
+									"                required: [\"id\", \"name\"]\r",
+									"            },\r",
+									"            name: { type: \"string\" },\r",
+									"            photoUrls: {\r",
+									"                type: \"array\",\r",
+									"                items: { type: \"string\" }\r",
+									"            },\r",
+									"            tags: {\r",
+									"                type: \"array\",\r",
+									"                items: {\r",
+									"                    type: \"object\",\r",
+									"                    properties: {\r",
+									"                        id: { type: \"integer\" },\r",
+									"                        name: { type: \"string\" }\r",
+									"                    },\r",
+									"                    required: [\"id\", \"name\"]\r",
+									"                }\r",
+									"            },\r",
+									"            status: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"category\", \"name\", \"photoUrls\", \"tags\", \"status\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F01 Req05 TC06 - Validate petId matches collection variable\", () => {\r",
+									"    pm.expect(pet.id).to.eql(Number(pm.collectionVariables.get(\"petId\")));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC07 - Validate pet name is a string\", () => {\r",
+									"    pm.expect(pet.name).to.be.a(\"string\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC08 - Validate category name is a string\", () => {\r",
+									"    pm.expect(pet.category.name).to.be.a(\"string\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req05 TC09 - Validate status is available, pending, or sold\", () => {\r",
+									"    const statuses = [\"available\", \"pending\", \"sold\"];\r",
+									"    pm.expect(statuses).to.include(pet.status);\r",
+									"});\r",
+									"pm.test(\"F01 Req05 TC10 - Validate status matches collection variable\", () => {\r",
+									"    pm.expect(pet.status).to.eql(pm.collectionVariables.get(\"status\"));\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "id",
+								"value": "{{petId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/pet/{{petId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet",
+								"{{petId}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/pet/1' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "01.5 find pet by pet id",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "id",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/pet/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:38 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 6713,\n    \"category\": {\n        \"id\": 62,\n        \"name\": \"Iohuz\"\n    },\n    \"name\": \"Przya\",\n    \"photoUrls\": [\n        \"https://picsum.photos/200/300?random=4518\"\n    ],\n    \"tags\": [\n        {\n            \"id\": 95,\n            \"name\": \"Vdaubp\"\n        }\n    ],\n    \"status\": \"sold\"\n}"
+						}
+					]
+				},
+				{
+					"name": "01.6 Updates a pet in the store with form data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F01 Req06 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req06 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req06 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req06 TC04 - Validate Server header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F01 Req06 TC05 - Validate update pet response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F01 Req06 TC06 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req06 TC07 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req06 TC08 - Validate response message matches petId in request URL\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const petId = requestUrl.split(\"/\").pop(); // last segment of URL\r",
+									"    pm.expect(jsonData.message).to.eql(petId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "{{petName}}",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "{{status}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/pet/{{petId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet",
+								"{{petId}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/pet/1' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/x-www-form-urlencoded' \\\r\n  -d 'name=w&status=w'"
+					},
+					"response": [
+						{
+							"name": "01.6 Updates a pet in the store with form data",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/x-www-form-urlencoded"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "name",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "status",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/pet/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:43 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"6713\"\n}"
+						}
+					]
+				},
+				{
+					"name": "01.7 delete a pet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F01 Req07 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req07 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req07 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req07 TC04 - Validate Server header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F01 Req07 TC05 - Validate update pet response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F01 Req07 TC06 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req07 TC07 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F01 Req07 TC08 - Validate response message matches petId in request URL\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const petId = requestUrl.split(\"/\").pop(); // last segment of URL\r",
+									"    pm.expect(jsonData.message).to.eql(petId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "api_key",
+								"value": "special-key"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/pet/{{petId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pet",
+								"{{petId}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'https://petstore.swagger.io/v2/pet/2' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'api_key: 1'"
+					},
+					"response": [
+						{
+							"name": "01.7 delete a pet",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "api_key",
+										"value": "special-key"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/pet/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"pet",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:48 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"6713\"\n}"
+						}
+					]
+				}
+			],
+			"description": "> **The “Pet” module in Swagger Petstore is the part of the demo API that handles everything related to pets.** It lets you add, update, search, and delete pets in the store, and is often used to practice CRUD operations in API testing."
+		},
+		{
+			"name": "02 Store",
+			"item": [
+				{
+					"name": "02.1 Returns pet inventories by status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F02 Req01 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC04 - Validate Server header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"Server\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F02 Req01 TC05 - Validate inventory response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        additionalProperties: { type: \"integer\" }\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F02 Req01 TC06 - Validate response contains required status keys\", () => {\r",
+									"    const keys = Object.keys(jsonData);\r",
+									"    pm.expect(keys).to.include.members([\"available\", \"pending\", \"sold\"]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC07 - Validate all inventory values are non-negative integers\", () => {\r",
+									"    Object.values(jsonData).forEach(val => {\r",
+									"        pm.expect(val).to.be.a(\"number\");\r",
+									"        pm.expect(val).to.be.at.least(0);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC08 - Validate 'available' count is greater than or equal to 0\", () => {\r",
+									"    pm.expect(jsonData.available).to.be.at.least(0);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC09 - Validate 'pending' count is greater than or equal to 0\", () => {\r",
+									"    pm.expect(jsonData.pending).to.be.at.least(0);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req01 TC10 - Validate 'sold' count is greater than or equal to 0\", () => {\r",
+									"    pm.expect(jsonData.sold).to.be.at.least(0);\r",
+									"});\r",
+									"\r",
+									"// Parameter logic\r",
+									"pm.test(\"F02 Req01 TC11 - Validate response contains at least expected status keys\", () => {\r",
+									"    const keys = Object.keys(jsonData);\r",
+									"    pm.expect(keys).to.include.members([\"available\", \"pending\", \"sold\"]);\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/store/inventory?status={{status}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"store",
+								"inventory"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "{{status}}"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/store/inventory' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "02.1 Returns pet inventories by status",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/store/inventory?status=",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"store",
+										"inventory"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": ""
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:24:57 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"sold\": 46,\n    \"string\": 36,\n    \"invalid_status\": 1,\n    \"unavailable\": 1,\n    \"pending\": 32,\n    \"available\": 496,\n    \"Not Available\": 1,\n    \"Available\": 1\n}"
+						}
+					]
+				},
+				{
+					"name": "02.2 Place an order for a pet",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Random number generator (inclusive)\r",
+									"function randomNumber(min, max) {\r",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"// Random past date generator (ISO format, any year before today)\r",
+									"function randomPastDate(startYear) {\r",
+									"  const start = new Date(startYear, 0, 1).getTime(); // Jan 1 of startYear\r",
+									"  const end = new Date().getTime();                  // current day\r",
+									"  const randomTime = randomNumber(start, end);\r",
+									"  return new Date(randomTime).toISOString();\r",
+									"}\r",
+									"\r",
+									"// Dynamic Order Data\r",
+									"const orderId = randomNumber(1, 99999);              // random orderId\r",
+									"const quantity = randomNumber(1, 10);\r",
+									"const shipDate = randomPastDate(1990);               // random date between 1990 and today\r",
+									"const complete = Math.random() < 0.5;                // true or false\r",
+									"\r",
+									"// Set variables in Postman (reusing pet variables from previous script)\r",
+									"pm.collectionVariables.set(\"orderId\", orderId);\r",
+									"pm.collectionVariables.set(\"quantity\", quantity);\r",
+									"pm.collectionVariables.set(\"shipDate\", shipDate);\r",
+									"pm.collectionVariables.set(\"complete\", complete);\r",
+									"\r",
+									"// Debug log\r",
+									"console.log(\"Generated Order data:\", {\r",
+									"  id: pm.collectionVariables.get(\"orderId\"),        // now using random orderId\r",
+									"  petId: pm.collectionVariables.get(\"petId\"),\r",
+									"  quantity: pm.collectionVariables.get(\"quantity\"),\r",
+									"  shipDate: pm.collectionVariables.get(\"shipDate\"),\r",
+									"  status: pm.collectionVariables.get(\"status\"),     // reused from pet\r",
+									"  complete: pm.collectionVariables.get(\"complete\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F02 Req02 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F02 Req02 TC04 - Validate order response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            petId: { type: \"integer\" },\r",
+									"            quantity: { type: \"integer\" },\r",
+									"            shipDate: { type: \"string\" },\r",
+									"            status: { type: \"string\" },\r",
+									"            complete: { type: \"boolean\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"petId\", \"quantity\", \"shipDate\", \"status\", \"complete\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F02 Req02 TC05 - Validate orderId is positive integer\", () => {\r",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.id).to.be.above(0);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC06 - Validate quantity is at least 1\", () => {\r",
+									"    pm.expect(jsonData.quantity).to.be.at.least(1);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC07 - Validate shipDate is before today\", () => {\r",
+									"    const shipDate = new Date(jsonData.shipDate);\r",
+									"    const today = new Date();\r",
+									"    pm.expect(shipDate.getTime()).to.be.below(today.getTime());\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC08 - Validate status is available, pending, or sold\", () => {\r",
+									"    const statuses = [\"available\", \"pending\", \"sold\"];\r",
+									"    pm.expect(statuses).to.include(jsonData.status);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req02 TC09 - Validate complete is boolean\", () => {\r",
+									"    pm.expect(jsonData.complete === true || jsonData.complete === false).to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": {{orderId}},\r\n  \"petId\": {{petId}},\r\n  \"quantity\": {{quantity}},\r\n  \"shipDate\": \"{{shipDate}}\",\r\n  \"status\": \"{{status}}\",\r\n  \"complete\": {{complete}}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/store/order",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"store",
+								"order"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/store/order' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"id\": 1,\r\n  \"petId\": 2,\r\n  \"quantity\": 4,\r\n  \"shipDate\": \"2025-11-18T04:45:21.420Z\",\r\n  \"status\": \"placed\",\r\n  \"complete\": true\r\n}'"
+					},
+					"response": [
+						{
+							"name": "02.2 Place an order for a pet",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": ,\r\n  \"petId\": ,\r\n  \"quantity\": ,\r\n  \"shipDate\": \"\",\r\n  \"status\": \"\",\r\n  \"complete\": \r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/store/order",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"store",
+										"order"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:02 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 47763,\n    \"petId\": 6713,\n    \"quantity\": 8,\n    \"shipDate\": \"2009-11-18T05:16:53.615+0000\",\n    \"status\": \"sold\",\n    \"complete\": false\n}"
+						}
+					]
+				},
+				{
+					"name": "02.3  Find purchase order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F02 Req03 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F02 Req03 TC04 - Validate order response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            petId: { type: \"integer\" },\r",
+									"            quantity: { type: \"integer\" },\r",
+									"            shipDate: { type: \"string\" },\r",
+									"            status: { type: \"string\" },\r",
+									"            complete: { type: \"boolean\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"petId\", \"quantity\", \"shipDate\", \"status\", \"complete\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F02 Req03 TC05 - Validate orderId matches request path variable\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const orderId = requestUrl.split(\"/\").pop();\r",
+									"    pm.expect(jsonData.id).to.eql(Number(orderId));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC06 - Validate quantity is at least 1\", () => {\r",
+									"    pm.expect(jsonData.quantity).to.be.at.least(1);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC07 - Validate shipDate is before today\", () => {\r",
+									"    const shipDate = new Date(jsonData.shipDate);\r",
+									"    const today = new Date();\r",
+									"    pm.expect(shipDate.getTime()).to.be.below(today.getTime());\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC08 - Validate status is valid\", () => {\r",
+									"    const statuses = [\"placed\", \"approved\", \"delivered\", \"pending\", \"available\", \"sold\"];\r",
+									"    pm.expect(statuses).to.include(jsonData.status);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"F02 Req03 TC09 - Validate complete is boolean\", () => {\r",
+									"    pm.expect(jsonData.complete === true || jsonData.complete === false).to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/store/order/{{orderId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"store",
+								"order",
+								"{{orderId}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/store/order/1' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "02.3  Find purchase order by ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/store/order/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"store",
+										"order",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:08 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 47763,\n    \"petId\": 6713,\n    \"quantity\": 8,\n    \"shipDate\": \"2009-11-18T05:16:53.615+0000\",\n    \"status\": \"sold\",\n    \"complete\": false\n}"
+						}
+					]
+				},
+				{
+					"name": "02.4  Delete purchase order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F02 Req04 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req04 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req04 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F02 Req04 TC04 - Validate delete order response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F02 Req04 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req04 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F02 Req04 TC07 - Validate response message matches deleted orderId\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const orderId = requestUrl.split(\"/\").pop();\r",
+									"    pm.expect(jsonData.message).to.eql(orderId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/store/order/{{orderId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"store",
+								"order",
+								"{{orderId}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'https://petstore.swagger.io/v2/store/order/1' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "02.4  Delete purchase order by ID",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/store/order/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"store",
+										"order",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:12 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"47763\"\n}"
+						}
+					]
+				}
+			],
+			"description": "> The **Store resource** in Swagger Petstore manages orders and inventory. It demonstrates how APIs handle transactional data and simple business logic. This module is often used to practice testing order flows, error handling, and stock tracking."
+		},
+		{
+			"name": "03 Users",
+			"item": [
+				{
+					"name": "03.1 create With List",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Random number generator (inclusive)\r",
+									"function randomNumber(min, max) {\r",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"// Random string generator (lowercase letters)\r",
+									"function generateRandomString(length) {\r",
+									"  const chars = 'abcdefghijklmnopqrstuvwxyz';\r",
+									"  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');\r",
+									"}\r",
+									"\r",
+									"// Capitalize first letter\r",
+									"function capitalize(str) {\r",
+									"  return str.charAt(0).toUpperCase() + str.slice(1);\r",
+									"}\r",
+									"\r",
+									"// Generate dynamic user fields\r",
+									"const userId = randomNumber(1, 99999);\r",
+									"const username = generateRandomString(randomNumber(5, 8));\r",
+									"const firstName = capitalize(generateRandomString(randomNumber(3, 7)));\r",
+									"const lastName = capitalize(generateRandomString(randomNumber(4, 8)));\r",
+									"const email = `${username}@example.com`;\r",
+									"const password = generateRandomString(randomNumber(6, 10));\r",
+									"const phone = `+20${randomNumber(100000000, 999999999)}`;\r",
+									"const userStatus = randomNumber(0, 1); // 0 or 1\r",
+									"\r",
+									"// Set variables in Postman\r",
+									"pm.collectionVariables.set(\"userId\", userId);\r",
+									"pm.collectionVariables.set(\"username\", username);\r",
+									"pm.collectionVariables.set(\"firstName\", firstName);\r",
+									"pm.collectionVariables.set(\"lastName\", lastName);\r",
+									"pm.collectionVariables.set(\"email\", email);\r",
+									"pm.collectionVariables.set(\"password\", password);\r",
+									"pm.collectionVariables.set(\"phone\", phone);\r",
+									"pm.collectionVariables.set(\"userStatus\", userStatus);\r",
+									"\r",
+									"// Debug log\r",
+									"console.log(\"Generated User data:\", {\r",
+									"  id: pm.collectionVariables.get(\"userId\"),\r",
+									"  username: pm.collectionVariables.get(\"username\"),\r",
+									"  firstName: pm.collectionVariables.get(\"firstName\"),\r",
+									"  lastName: pm.collectionVariables.get(\"lastName\"),\r",
+									"  email: pm.collectionVariables.get(\"email\"),\r",
+									"  password: pm.collectionVariables.get(\"password\"),\r",
+									"  phone: pm.collectionVariables.get(\"phone\"),\r",
+									"  userStatus: pm.collectionVariables.get(\"userStatus\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req01 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req01 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req01 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req01 TC04 - Validate createWithList response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req01 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req01 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req01 TC07 - Validate response message is 'ok'\", () => {\r",
+									"    pm.expect(jsonData.message.toLowerCase()).to.eql(\"ok\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"phone\": \"{{phone}}\",\r\n    \"userStatus\": {{userStatus}}\r\n  }\r\n]\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/createWithList",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"createWithList"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/user/createWithList' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '[\r\n  {\r\n    \"id\": 1,\r\n    \"username\": \"string\",\r\n    \"firstName\": \"string\",\r\n    \"lastName\": \"string\",\r\n    \"email\": \"string\",\r\n    \"password\": \"string\",\r\n    \"phone\": \"string\",\r\n    \"userStatus\": 0\r\n  }\r\n]'"
+					},
+					"response": [
+						{
+							"name": "03.1 create With List",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n  {\r\n    \"id\": ,\r\n    \"username\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"phone\": \"\",\r\n    \"userStatus\": \r\n  }\r\n]\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/user/createWithList",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										"createWithList"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:21 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"ok\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.2  Get user by user name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req02 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req02 TC04 - Validate user response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            id: { type: \"integer\" },\r",
+									"            username: { type: \"string\" },\r",
+									"            firstName: { type: \"string\" },\r",
+									"            lastName: { type: \"string\" },\r",
+									"            email: { type: \"string\" },\r",
+									"            password: { type: \"string\" },\r",
+									"            phone: { type: \"string\" },\r",
+									"            userStatus: { type: \"integer\" }\r",
+									"        },\r",
+									"        required: [\"id\", \"username\", \"firstName\", \"lastName\", \"email\", \"password\", \"phone\", \"userStatus\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req02 TC05 - Validate id is positive integer\", () => {\r",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.id).to.be.above(0);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC06 - Validate username matches request path variable\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const username = requestUrl.split(\"/\").pop();\r",
+									"    pm.expect(jsonData.username).to.eql(username);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC07 - Validate email contains '@'\", () => {\r",
+									"    pm.expect(jsonData.email).to.include(\"@\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC08 - Validate phone starts with '+20'\", () => {\r",
+									"    pm.expect(jsonData.phone.startsWith(\"+20\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req02 TC09 - Validate userStatus is 0 or 1\", () => {\r",
+									"    pm.expect([0,1]).to.include(jsonData.userStatus);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/{{username}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{username}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/user/s' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "03.2  Get user by user name",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/user/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:27 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 76372,\n    \"username\": \"hdlfefxu\",\n    \"firstName\": \"Sjlnp\",\n    \"lastName\": \"Qxdbwmg\",\n    \"email\": \"hdlfefxu@example.com\",\n    \"password\": \"oaaqgymbrp\",\n    \"phone\": \"+20418334477\",\n    \"userStatus\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "03.3  Updated user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"F03 Req03 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req03 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req03 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req03 TC04 - Validate update user response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req03 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req03 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req03 TC07 - Validate response message is numeric (update confirmation)\", () => {\r",
+									"    pm.expect(Number.isNaN(Number(jsonData.message))).to.be.false;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"phone\": \"{{phone}}\",\r\n    \"userStatus\": {{userStatus}}\r\n  }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/{{username}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{username}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'PUT' \\\r\n  'https://petstore.swagger.io/v2/user/s' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"id\": 0,\r\n  \"username\": \"string\",\r\n  \"firstName\": \"string\",\r\n  \"lastName\": \"string\",\r\n  \"email\": \"string\",\r\n  \"password\": \"string\",\r\n  \"phone\": \"string\",\r\n  \"userStatus\": 0\r\n}'"
+					},
+					"response": [
+						{
+							"name": "03.3  Updated user",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n  {\r\n    \"id\": ,\r\n    \"username\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"phone\": \"\",\r\n    \"userStatus\": \r\n  }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/user/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"status": "Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:37 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 500,\n    \"type\": \"unknown\",\n    \"message\": \"something bad happened\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.4  Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"F03 Req04 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req04 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req04 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req04 TC04 - Validate delete user response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req04 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req04 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req04 TC07 - Validate response message matches deleted username\", () => {\r",
+									"    const requestUrl = pm.request.url.toString();\r",
+									"    const username = requestUrl.split(\"/\").pop();\r",
+									"    pm.expect(jsonData.message).to.eql(username);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/{{username}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{username}}"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'DELETE' \\\r\n  'https://petstore.swagger.io/v2/user/ad' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "03.4  Delete user",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/user/",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:42 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"hdlfefxu\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.5 Logs user into the system",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req05 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req05 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req05 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req05 TC04 - Validate login response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req05 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req05 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req05 TC07 - Validate message contains 'logged in user session:'\", () => {\r",
+									"    pm.expect(jsonData.message).to.include(\"logged in user session:\");\r",
+									"});\r",
+									"\r",
+									"// Header Validations\r",
+									"pm.test(\"F03 Req05 TC08 - Validate X-Expires-After header exists\", () => {\r",
+									"    pm.expect(pm.response.headers.has(\"X-Expires-After\")).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req05 TC09 - Validate X-Rate-Limit header exists and is numeric\", () => {\r",
+									"    const rateLimit = pm.response.headers.get(\"X-Rate-Limit\");\r",
+									"    pm.expect(Number.isNaN(Number(rateLimit))).to.be.false;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/login?username={{username}}&password={{password}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"login"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/user/login?username=ts&password=123' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "03.5 Logs user into the system",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/user/login?username=&password=",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										"login"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": ""
+										},
+										{
+											"key": "password",
+											"value": ""
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:25:50 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "X-Expires-After",
+									"value": "Wed Nov 19 07:25:50 UTC 2025"
+								},
+								{
+									"key": "X-Rate-Limit",
+									"value": "5000"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"logged in user session:1763533550959\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.7 create With Array",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req07 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req07 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req07 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req07 TC04 - Validate createWithArray response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req07 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req07 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req07 TC07 - Validate response message is 'ok'\", () => {\r",
+									"    pm.expect(jsonData.message.toLowerCase()).to.eql(\"ok\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"phone\": \"{{phone}}\",\r\n    \"userStatus\": {{userStatus}}\r\n  }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://petstore.swagger.io/v2/user/createWithArray",
+							"protocol": "https",
+							"host": [
+								"petstore",
+								"swagger",
+								"io"
+							],
+							"path": [
+								"v2",
+								"user",
+								"createWithArray"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/user/createWithArray' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '[\r\n  {\r\n    \"id\": 0,\r\n    \"username\": \"string\",\r\n    \"firstName\": \"string\",\r\n    \"lastName\": \"string\",\r\n    \"email\": \"string\",\r\n    \"password\": \"string\",\r\n    \"phone\": \"string\",\r\n    \"userStatus\": 0\r\n  }\r\n]'"
+					},
+					"response": [
+						{
+							"name": "03.7 create With Array",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n  {\r\n    \"id\": ,\r\n    \"username\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"phone\": \"\",\r\n    \"userStatus\": \r\n  }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/v2/user/createWithArray",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"v2",
+										"user",
+										"createWithArray"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:26:00 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"ok\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.8  Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req08 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req08 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req08 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req08 TC04 - Validate create user response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req08 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req08 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req08 TC07 - Validate response message is numeric (user ID confirmation)\", () => {\r",
+									"    pm.expect(Number.isNaN(Number(jsonData.message))).to.be.false;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"phone\": \"{{phone}}\",\r\n    \"userStatus\": {{userStatus}}\r\n  }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'POST' \\\r\n  'https://petstore.swagger.io/v2/user' \\\r\n  -H 'accept: application/json' \\\r\n  -H 'Content-Type: application/json' \\\r\n  -d '{\r\n  \"id\": 0,\r\n  \"username\": \"string\",\r\n  \"firstName\": \"string\",\r\n  \"lastName\": \"string\",\r\n  \"email\": \"string\",\r\n  \"password\": \"string\",\r\n  \"phone\": \"string\",\r\n  \"userStatus\": 0\r\n}'"
+					},
+					"response": [
+						{
+							"name": "03.8  Create user",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n  {\r\n    \"id\": ,\r\n    \"username\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"phone\": \"\",\r\n    \"userStatus\": \r\n  }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://petstore.swagger.io/user",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"status": "Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:26:08 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 500,\n    \"type\": \"unknown\",\n    \"message\": \"something bad happened\"\n}"
+						}
+					]
+				},
+				{
+					"name": "03.6 logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response JSON\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Response Validations\r",
+									"pm.test(\"F03 Req06 TC01 - Validate response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req06 TC02 - Validate response time is under 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req06 TC03 - Validate Content-Type header is application/json\", () => {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"// Schema Validation\r",
+									"pm.test(\"F03 Req06 TC04 - Validate logout response schema\", () => {\r",
+									"    const schema = {\r",
+									"        type: \"object\",\r",
+									"        properties: {\r",
+									"            code: { type: \"integer\" },\r",
+									"            type: { type: \"string\" },\r",
+									"            message: { type: \"string\" }\r",
+									"        },\r",
+									"        required: [\"code\", \"type\", \"message\"]\r",
+									"    };\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"// Body Validations\r",
+									"pm.test(\"F03 Req06 TC05 - Validate response code is 200\", () => {\r",
+									"    pm.expect(jsonData.code).to.eql(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req06 TC06 - Validate response type is 'unknown'\", () => {\r",
+									"    pm.expect(jsonData.type).to.eql(\"unknown\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"F03 Req06 TC07 - Validate response message is 'ok'\", () => {\r",
+									"    pm.expect(jsonData.message.toLowerCase()).to.eql(\"ok\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/logout",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"logout"
+							]
+						},
+						"description": "Generated from cURL: curl -X 'GET' \\\r\n  'https://petstore.swagger.io/v2/user/logout' \\\r\n  -H 'accept: application/json'"
+					},
+					"response": [
+						{
+							"name": "03.6 logout",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "https://petstore.swagger.io/user/logout",
+									"protocol": "https",
+									"host": [
+										"petstore",
+										"swagger",
+										"io"
+									],
+									"path": [
+										"user",
+										"logout"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 19 Nov 2025 06:26:17 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, POST, DELETE, PUT"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-Type, api_key, Authorization"
+								},
+								{
+									"key": "Server",
+									"value": "Jetty(9.2.9.v20150224)"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"type\": \"unknown\",\n    \"message\": \"ok\"\n}"
+						}
+					]
+				}
+			],
+			"description": "> The User resource in Swagger Petstore manages accounts and authentication. It demonstrates how APIs handle user data, login sessions, and lifecycle operations. This module is often used to practice testing identity flows and CRUD operations."
+		}
+	],
+	"variable": [
+		{
+			"key": "petId",
+			"value": ""
+		},
+		{
+			"key": "categoryId",
+			"value": ""
+		},
+		{
+			"key": "categoryName",
+			"value": ""
+		},
+		{
+			"key": "petName",
+			"value": ""
+		},
+		{
+			"key": "photoUrl",
+			"value": ""
+		},
+		{
+			"key": "tagId",
+			"value": ""
+		},
+		{
+			"key": "tagName",
+			"value": ""
+		},
+		{
+			"key": "status",
+			"value": ""
+		},
+		{
+			"key": "quantity",
+			"value": ""
+		},
+		{
+			"key": "shipDate",
+			"value": ""
+		},
+		{
+			"key": "complete",
+			"value": ""
+		},
+		{
+			"key": "orderId",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": ""
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "firstName",
+			"value": ""
+		},
+		{
+			"key": "lastName",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "phone",
+			"value": ""
+		},
+		{
+			"key": "userStatus",
+			"value": ""
+		}
+	]
+}
